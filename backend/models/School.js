@@ -40,6 +40,24 @@ const schoolSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  additionalAdmins: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    assignedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    assignedDate: {
+      type: Date,
+      default: Date.now
+    },
+    permissions: [{
+      type: String,
+      enum: ['manage_events', 'view_analytics', 'manage_students']
+    }]
+  }],
   isVerified: {
     type: Boolean,
     default: false

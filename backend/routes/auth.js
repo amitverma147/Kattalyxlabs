@@ -19,7 +19,7 @@ const generateToken = (userId) => {
 // Register user
 router.post('/register', async (req, res) => {
   try {
-    const { firstName, lastName, email, password, role, schoolId, phone, bio } = req.body;
+    const { firstName, lastName, fullName, email, password, role, schoolId, phone, bio } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -28,21 +28,23 @@ router.post('/register', async (req, res) => {
     }
 
     // Validate school if provided
-    if (schoolId) {
+    if (schoolId && schoolId.trim() !== '') {
       const school = await School.findById(schoolId);
       if (!school) {
         return res.status(400).json({ message: 'Invalid school ID' });
       }
     }
 
+    // Use fullName if provided, otherwise combine firstName and lastName
+    const userFullName = fullName || `${firstName} ${lastName}`;
+
     // Create new user
     const user = new User({
-      firstName,
-      lastName,
+      fullName: userFullName,
       email,
       password,
       role: role || 'student',
-      school: schoolId,
+      school: schoolId && schoolId.trim() !== '' ? schoolId : null,
       phone,
       bio
     });
@@ -57,8 +59,7 @@ router.post('/register', async (req, res) => {
       token,
       user: {
         id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        fullName: user.fullName,
         email: user.email,
         role: user.role,
         school: user.school
@@ -104,8 +105,7 @@ router.post('/login', async (req, res) => {
       token,
       user: {
         id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        fullName: user.fullName,
         email: user.email,
         role: user.role,
         school: user.school,
@@ -136,7 +136,7 @@ router.get('/me', authenticateToken, async (req, res) => {
 // Update user profile
 router.put('/profile', authenticateToken, async (req, res) => {
   try {
-    const { firstName, lastName, phone, bio, avatar, skills, experience } = req.body;
+    const { fullName, phone, bio, avatar, skills, experience } = req.body;
     
     const user = await User.findById(req.user._id);
     if (!user) {
@@ -144,8 +144,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
     }
 
     // Update fields
-    if (firstName) user.firstName = firstName;
-    if (lastName) user.lastName = lastName;
+    if (fullName) user.fullName = fullName;
     if (phone) user.phone = phone;
     if (bio) user.bio = bio;
     if (avatar) user.avatar = avatar;
@@ -158,8 +157,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
       message: 'Profile updated successfully',
       user: {
         id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        fullName: user.fullName,
         email: user.email,
         role: user.role,
         phone: user.phone,

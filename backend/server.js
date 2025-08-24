@@ -12,6 +12,9 @@ import userRoutes from './routes/users.js';
 import schoolRoutes from './routes/schools.js';
 import speakerRoutes from './routes/speakers.js';
 import feedbackRoutes from './routes/feedback.js';
+import eventRequestRoutes from './routes/eventRequests.js';
+import speakerRequestRoutes from './routes/speakerRequests.js';
+import adminRoutes from './routes/admin.js';
 
 // Import middleware
 import { authenticateToken } from './middleware/auth.js';
@@ -40,6 +43,9 @@ app.use('/api/users', authenticateToken, userRoutes);
 app.use('/api/schools', authenticateToken, schoolRoutes);
 app.use('/api/speakers', authenticateToken, speakerRoutes);
 app.use('/api/feedback', authenticateToken, feedbackRoutes);
+app.use('/api/event-requests', authenticateToken, eventRequestRoutes);
+app.use('/api/speaker-requests', authenticateToken, speakerRequestRoutes);
+app.use('/api/admin', authenticateToken, adminRoutes);
 
 // Serve static files in production
 if (process.env.NODE_ENV === 'production') {

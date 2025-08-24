@@ -2,12 +2,7 @@ import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 const userSchema = new mongoose.Schema({
-  firstName: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  lastName: {
+  fullName: {
     type: String,
     required: true,
     trim: true
@@ -43,7 +38,8 @@ const userSchema = new mongoose.Schema({
   },
   school: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'School'
+    ref: 'School',
+    default: null
   },
   skills: [{
     type: String,
@@ -63,6 +59,32 @@ const userSchema = new mongoose.Schema({
   },
   lastLogin: {
     type: Date
+  },
+  // Admin specific fields
+  adminLevel: {
+    type: String,
+    enum: ['school_admin', 'super_admin'],
+    default: null
+  },
+  permissions: [{
+    type: String,
+    enum: [
+      'manage_events',
+      'manage_users', 
+      'manage_schools',
+      'approve_requests',
+      'view_analytics',
+      'manage_admins',
+      'system_settings'
+    ]
+  }],
+  assignedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  adminNotes: {
+    type: String,
+    maxlength: 500
   }
 }, {
   timestamps: true
@@ -85,11 +107,6 @@ userSchema.pre('save', async function(next) {
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
-
-// Get full name
-userSchema.virtual('fullName').get(function() {
-  return `${this.firstName} ${this.lastName}`;
-});
 
 // Ensure virtual fields are serialized
 userSchema.set('toJSON', {

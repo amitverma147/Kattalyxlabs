@@ -82,8 +82,8 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Create event (school admin and super admin only)
-router.post('/', authenticateToken, authorizeRoles('school_admin', 'super_admin'), async (req, res) => {
+// Create event (super admin only)
+router.post('/', authenticateToken, authorizeRoles('super_admin'), async (req, res) => {
   try {
     const {
       title,
@@ -109,10 +109,7 @@ router.post('/', authenticateToken, authorizeRoles('school_admin', 'super_admin'
       return res.status(400).json({ message: 'Invalid school ID' });
     }
 
-    // Check if user has permission to create events for this school
-    if (req.user.role === 'school_admin' && school.admin.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'You can only create events for your school' });
-    }
+    // Super admin can create events for any school
 
     const event = new Event({
       title,
@@ -149,18 +146,16 @@ router.post('/', authenticateToken, authorizeRoles('school_admin', 'super_admin'
   }
 });
 
-// Update event
-router.put('/:id', authenticateToken, authorizeRoles('school_admin', 'super_admin'), async (req, res) => {
+// Update event (super admin only)
+router.put('/:id', authenticateToken, authorizeRoles('super_admin'), async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // Check permissions
-    if (req.user.role === 'school_admin' && event.organizer.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'You can only edit your own events' });
-    }
+    // Check permissions - only super admin can edit events
+    // (removed school admin restriction as only super admin can create/edit events now)
 
     const updatedEvent = await Event.findByIdAndUpdate(
       req.params.id,
@@ -179,18 +174,16 @@ router.put('/:id', authenticateToken, authorizeRoles('school_admin', 'super_admi
   }
 });
 
-// Delete event
-router.delete('/:id', authenticateToken, authorizeRoles('school_admin', 'super_admin'), async (req, res) => {
+// Delete event (super admin only)
+router.delete('/:id', authenticateToken, authorizeRoles('super_admin'), async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    // Check permissions
-    if (req.user.role === 'school_admin' && event.organizer.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'You can only delete your own events' });
-    }
+    // Check permissions - only super admin can delete events
+    // (removed school admin restriction as only super admin can create/edit/delete events now)
 
     await Event.findByIdAndDelete(req.params.id);
 
